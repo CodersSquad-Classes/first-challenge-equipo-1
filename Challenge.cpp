@@ -10,6 +10,7 @@
 #include <thread>
 #include <atomic>
 
+
 // Comparador para el Min-Heap
 struct Comparador {
     bool operator()(const std::pair<std::string, int>& a, const std::pair<std::string, int>& b) {
@@ -85,22 +86,24 @@ int main() {
     std::thread memoryThread(monitorMemoryUsage);
 
     size_t ramTotal = getTotalSystemMemory();
-    size_t ramStop = ramTotal * 0.2;
+    size_t ramStop = ramTotal * 0.2; // 8MB
     int contadorArchivo = 1;
 
-    std::list<std::string> palabras;
-    std::ifstream archivoEntrada("nose.txt");
+    std::vector<std::string> palabras;
+    std::ifstream archivoEntrada("data.txt");
     std::string palabra;
 
     while (archivoEntrada >> palabra) {
         palabras.push_back(palabra);
 
         // Verificar memoria disponible
-        size_t ramDisp = getTotalSystemMemory();
+        size_t ramDisp = ramTotal - getUsedMemory();
         if (ramDisp < ramStop) {
-            //ordenar con quicksort aqui
+            //Ordenar pedazo de archivo
+            std::sort(palabras.begin(),palabras.end());
 
-            std::string nombreArchivo = "bitacora" + std::to_string(contadorArchivo) + ".txt";
+
+            std::string nombreArchivo = "data" + std::to_string(contadorArchivo) + ".txt";
             std::ofstream archivoSalida(nombreArchivo);
 
             for (const auto& x : palabras) {
@@ -114,9 +117,9 @@ int main() {
     }
 
     if (!palabras.empty()) {
-       //ordenar con quicksort aqui
+        std::sort(palabras.begin(),palabras.end());
 
-        std::string nombreArchivo = "bitacora" + std::to_string(contadorArchivo) + ".txt";
+        std::string nombreArchivo = "data" + std::to_string(contadorArchivo) + ".txt";
         std::ofstream archivoSalida(nombreArchivo);
 
         for (const auto& x : palabras) {
@@ -131,22 +134,21 @@ int main() {
     // ------------------------------
     // MERGE
     // ------------------------------
-    std::priority_queue<std::pair<std::string, int>, std::vector<std::pair<std::string, int>>, Comparador> minHeap;
+    std::priority_queue<std::pair<std::string, int>, std::vector<std::pair<std::string, int>>, Comparador> minHeap; 
+    std::unordered_map<int, std::ifstream> archivos;
 
     // Cargar la primera palabra de cada archivo en el heap
     for (int i = 1; i <= contadorArchivo; i++) {
-        std::string nombreArchivo = "bitacora" + std::to_string(i) + ".txt";
-        std::ifstream archivo(nombreArchivo);
+        std::string nombreArchivo = "data" + std::to_string(i) + ".txt";
+        archivos[i] = std::ifstream(nombreArchivo);
 
         std::string primeraPalabra;
-        if (archivo >> primeraPalabra) {
+        if (archivos[i] >> primeraPalabra) {
             minHeap.push({primeraPalabra, i});
         }
-
-        archivo.close();
     }
 
-    std::ofstream archivoSalida("bitacoraOrdenada.txt");
+    std::ofstream archivoSalida("sorted_data.txt");
 
     // Procesar el heap
     while (!minHeap.empty()) {
@@ -155,19 +157,20 @@ int main() {
 
         archivoSalida << palabra << std::endl;
 
-        std::string nombreArchivo = "bitacora" + std::to_string(idArchivo) + ".txt";
-        std::ifstream archivo(nombreArchivo);
-
         std::string nuevaPalabra;
-        if (archivo >> nuevaPalabra) {
+        if (archivos[idArchivo] >> nuevaPalabra) {
             minHeap.push({nuevaPalabra, idArchivo});
         }
+    }
 
-        archivo.close();
+
+    // Cerrar todos los archivos después del merge
+    for (auto& [id, file] : archivos) {
+        file.close();
     }
 
     archivoSalida.close();
-    std::cout << "Archivo ordenado creado: bitacoraOrdenada.txt\n";
+    std::cout << "Archivo ordenado creado: sorted_data.txt\n";
 
     // Finalizar el hilo de monitoreo
     running = false;
