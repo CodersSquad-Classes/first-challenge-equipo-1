@@ -85,8 +85,7 @@ int main() {
     // Hilo de monitoreo de Ram
     std::thread memoryThread(monitorMemoryUsage);
 
-    size_t ramTotal = getTotalSystemMemory();
-    size_t ramStop = ramTotal * 0.2; // 8MB
+    size_t ramTotal = 512 * 1024 * 1024;
     int contadorArchivo = 1;
 
     std::vector<std::string> palabras;
@@ -97,8 +96,7 @@ int main() {
         palabras.push_back(palabra);
 
         // Verificar memoria disponible
-        size_t ramDisp = ramTotal - getUsedMemory();
-        if (ramDisp < ramStop) {
+        if (getUsedMemory() > ramTotal * 0.6) {
             //Ordenar pedazo de archivo
             std::sort(palabras.begin(),palabras.end());
 
@@ -171,6 +169,16 @@ int main() {
 
     archivoSalida.close();
     std::cout << "Archivo ordenado creado: sorted_data.txt\n";
+
+    // Eliminar archivos temporales
+    for (int i = 1; i <= contadorArchivo; i++) {
+        std::string nombreArchivo = "data" + std::to_string(i) + ".txt";
+        if (std::remove(nombreArchivo.c_str()) != 0) {
+            std::cerr << "Error al eliminar el archivo: " << nombreArchivo << std::endl;
+        } else {
+            std::cout << "Archivo temporal eliminado: " << nombreArchivo << std::endl;
+        }
+    }
 
     // Finalizar el hilo de monitoreo
     running = false;
