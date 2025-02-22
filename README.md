@@ -30,11 +30,11 @@ The main problem is simple, you need to sort all strings in the `data.txt` file 
 
 ## How to build/compile
 
-_YOUR DOCUMENTATION_
+This code is written in C++ latest version. Its a single file that can be compiled with the following command g++ -std=c++17 -o challenge challenge.cpp
 
 ## How to run
 
-_YOUR DOCUMENTATION_
+Open the .exe file after compilling it. The user needs MacOs for the program to work properly (because every operative system needs a different library to read the RAM of the device)
 
 ## Test Cases
 
