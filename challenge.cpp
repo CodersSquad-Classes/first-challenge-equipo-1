@@ -1,5 +1,4 @@
-#include <sys/sysctl.h>
-#include <mach/mach.h>
+#include <unistd.h>
 #include <iostream>
 #include <fstream>
 #include <queue>
@@ -8,6 +7,43 @@
 #include <list>
 #include <thread>
 #include <atomic>
+
+#include <iostream>
+#include <unistd.h>
+
+#if defined(__linux__)
+#include <fstream>
+
+size_t getUsedMemory() {
+    std::ifstream statm("/proc/self/statm");
+    size_t total_pages, resident_pages;
+    
+    if (statm >> total_pages >> resident_pages) {
+        long page_size = sysconf(_SC_PAGE_SIZE);
+        return resident_pages * page_size; // Retorna memoria usada en bytes
+    }
+
+    return 0; // Error al leer
+}
+
+#elif defined(__APPLE__) && defined(__MACH__)
+#include <mach/mach.h>
+
+size_t getUsedMemory() {
+    struct task_basic_info info;
+    mach_msg_type_number_t count = TASK_BASIC_INFO_COUNT;
+    
+    if (task_info(mach_task_self(), TASK_BASIC_INFO, (task_info_t)&info, &count) != KERN_SUCCESS) {
+        return 0;
+    }
+
+    return info.resident_size; // Retorna memoria usada en bytes
+}
+
+#else
+#error "Sistema operativo no soportado"
+#endif
+
 
 
 // Comparador para el Min-Heap
@@ -28,27 +64,9 @@ struct Comparador {
 
 //Funciones de internet para poder leer la RAM
 unsigned long long getTotalSystemMemory() {
-    int mib[2] = { CTL_HW, HW_MEMSIZE };
-    uint64_t totalMemory;
-    size_t length = sizeof(totalMemory);
-
-    if (sysctl(mib, 2, &totalMemory, &length, NULL, 0) != 0) {
-        return 0; 
-    }
-
-    return totalMemory;
-}
-
-
-size_t getUsedMemory() {
-    task_basic_info_data_t info;
-    mach_msg_type_number_t count = TASK_BASIC_INFO_COUNT;
-
-    if (task_info(mach_task_self(), TASK_BASIC_INFO, (task_info_t)&info, &count) != KERN_SUCCESS) {
-        return 0;
-    }
-
-    return info.resident_size;
+    long pages = sysconf(_SC_PHYS_PAGES);
+    long page_size = sysconf(_SC_PAGE_SIZE);
+    return pages * page_size;
 }
 
 /*
@@ -67,15 +85,16 @@ int main() {
     // Hilo de monitoreo de Ram
     //std::thread memoryThread(monitorMemoryUsage);
 
-    size_t ramTotal = getTotalSystemMemory();
+    //size_t ramTotal = getTotalSystemMemory();
     //para hardcodear la RAM
-    //size_t ramTotal = 8 * 1024 * 1024;
+    size_t ramTotal = 8 * 1024 * 1024;
+    std::cout << ramTotal << std::endl;
     int contadorArchivo = 1;
 
     std::vector<std::string> palabras;
     std::ifstream archivoEntrada("data.txt");
     std::string palabra;
-
+    
     while (archivoEntrada >> palabra) {
         palabras.push_back(palabra);
 
