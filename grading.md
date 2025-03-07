@@ -13,3 +13,26 @@ challenge.cpp:1:10: fatal error: sys/sysctl.h: No such file or directory
       |          ^~~~~~~~~~~~~~
 compilation terminated.
 ```
+
+## Another compilation error (2025-03-06)
+
+```
+challenge.cpp: In function ‘int main()’:
+challenge.cpp:104:18: error: ‘sort’ is not a member of ‘std’; did you mean ‘qsort’?
+  104 |             std::sort(palabras.begin(),palabras.end());
+      |                  ^~~~
+      |                  qsort
+challenge.cpp: In function ‘int main()’:
+challenge.cpp:104:18: error: ‘sort’ is not a member of ‘std’; did you mean ‘qsort’?
+  104 |             std::sort(palabras.begin(),palabras.end());
+      |                  ^~~~
+      |                  qsort
+challenge.cpp:121:14: error: ‘sort’ is not a member of ‘std’; did you mean ‘qsort’?
+  121 |         std::sort(palabras.begin(),palabras.end());
+      |              ^~~~
+      |              qsort
+challenge.cpp:121:14: error: ‘sort’ is not a member of ‘std’; did you mean ‘qsort’?
+  121 |         std::sort(palabras.begin(),palabras.end());
+      |              ^~~~
+      |              qsort
+```
